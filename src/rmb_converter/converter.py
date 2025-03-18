@@ -1,10 +1,29 @@
 """人民币数字转中文大写转换模块。"""
-from typing import Tuple
+from functools import lru_cache
+from typing import Tuple, Dict
 
 from .input_processor import process_number
 from .number_converter import convert_integer, DIGITS
 
+# 货币单位常量
+CURRENCY_UNITS = {
+    'YUAN': '元',
+    'JIAO': '角',
+    'FEN': '分',
+    'ZHENG': '整'
+}
 
+# 预计算常用的小数部分转换结果
+COMMON_DECIMALS: Dict[str, str] = {
+    '00': '整',
+    '10': '壹角',
+    '01': '壹分',
+    '50': '伍角',
+    '05': '伍分',
+    '55': '伍角伍分'
+}
+
+@lru_cache(maxsize=100)
 def convert_decimal(decimal: str) -> str:
     """
     将小数部分转换为中文大写。
@@ -15,21 +34,25 @@ def convert_decimal(decimal: str) -> str:
     Returns:
         转换后的中文大写字符串
     """
-    if decimal == '00':
-        return '整'
+    # 检查是否在预计算结果中
+    if decimal in COMMON_DECIMALS:
+        return COMMON_DECIMALS[decimal]
     
-    result = ''
+    if decimal == '00':
+        return CURRENCY_UNITS['ZHENG']
+    
+    result = []
     jiao = int(decimal[0])
     fen = int(decimal[1])
     
     if jiao > 0:
-        result += DIGITS[jiao] + '角'
+        result.append(DIGITS[jiao] + CURRENCY_UNITS['JIAO'])
     if fen > 0:
-        result += DIGITS[fen] + '分'
+        result.append(DIGITS[fen] + CURRENCY_UNITS['FEN'])
     
-    return result
+    return ''.join(result)
 
-
+@lru_cache(maxsize=1024)
 def format_rmb(integer: str, decimal: str) -> str:
     """
     格式化人民币金额。
@@ -42,22 +65,21 @@ def format_rmb(integer: str, decimal: str) -> str:
         格式化后的人民币金额字符串
     """
     if integer == '0' and decimal == '00':
-        return '零元整'
+        return f"零{CURRENCY_UNITS['YUAN']}{CURRENCY_UNITS['ZHENG']}"
     
-    result = ''
+    result = []
     if integer != '0':
-        result += convert_integer(integer) + '元'
+        result.append(convert_integer(integer) + CURRENCY_UNITS['YUAN'])
     
     decimal_part = convert_decimal(decimal)
-    if decimal_part != '整':
+    if decimal_part != CURRENCY_UNITS['ZHENG']:
         if integer != '0' and decimal[0] == '0' and decimal[1] != '0':
-            result += '零'
-        result += decimal_part
+            result.append('零')
+        result.append(decimal_part)
     else:
-        result += decimal_part
+        result.append(decimal_part)
     
-    return result
-
+    return ''.join(result)
 
 def convert_to_rmb(amount: str) -> str:
     """将数字金额转换为人民币大写。
