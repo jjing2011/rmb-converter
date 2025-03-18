@@ -1,6 +1,7 @@
-def main():
-    print("Hello from rmb-converter!")
+"""人民币数字转中文大写转换程序入口点。"""
+import sys
 
+from src.rmb_converter.cli import main
 
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    sys.exit(main())

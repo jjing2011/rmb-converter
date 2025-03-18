@@ -1,9 +1,23 @@
 [project]
 name = "rmb-converter"
 version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
-requires-python = ">=3.13"
-dependencies = [
-    "ruff>=0.11.0",
+description = "将数字金额转换为人民币大写的工具"
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}
 ]
+dependencies = []
+requires-python = ">=3.8"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py38"
+select = ["E", "F", "B", "I"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --cov=src --cov-report=term-missing"
